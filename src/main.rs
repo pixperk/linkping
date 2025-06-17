@@ -6,6 +6,9 @@ use crate::{config::Config, routes::create_router};
 mod config;
 mod routes;
 mod db;
+mod models;
+mod services;
+mod errors;
 
 #[tokio::main]
 async fn main() {
@@ -25,6 +28,6 @@ async fn main() {
 
     //Router
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    let app = create_router();
+    let app = create_router(db_pool);
     axum::serve(listener, app).await.unwrap();
 }

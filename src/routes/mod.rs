@@ -1,9 +1,10 @@
-use axum::{routing::get, Router};
+mod shorten;
 
-pub fn create_router() -> Router {
-    Router::new().route("/health", get(health))
-}
+use axum::Router;
+use sqlx::PgPool;
 
-async fn health() -> &'static str {
-    "LinkPing server is running and healthy!"
+use crate::routes::shorten::shorten_routes;
+
+pub fn create_router(db : PgPool) -> Router {
+    shorten_routes(db)
 }
