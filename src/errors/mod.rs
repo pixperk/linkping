@@ -44,4 +44,4 @@ impl Display for AppError {
             AppError::Unauthorized(e) => write!(f, "Unauthorized: {}", e),
         }
     }
-}
+} 

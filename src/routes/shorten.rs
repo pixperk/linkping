@@ -1,10 +1,11 @@
 use axum::{
     extract::{Json, State}, routing::{get, post}, Router
 };
-use sqlx::PgPool;
+use sqlx:: PgPool;
 use crate::models::link::{ShortenRequest, ShortenResponse};
 use crate::services::link::create_short_link;
 use crate::errors::AppError;
+use validator::Validate;
 
 pub fn shorten_routes(db: PgPool) -> Router {
     Router::new()
@@ -16,10 +17,14 @@ pub fn shorten_routes(db: PgPool) -> Router {
 async fn shorten_handler(
     State(db) : State<sqlx::PgPool>,
     Json(payload): Json<ShortenRequest>,
-) -> Result<Json<ShortenResponse>, AppError> {    
-    let slug = create_short_link(&db, payload.target_url)
-        .await
-        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+) -> Result<Json<ShortenResponse>, AppError> { 
+
+    if let Err(e) = payload.validate() {
+        return Err(AppError::ValidationError(e.to_string()));
+    }
+
+    let slug = create_short_link(&db, payload.target_url, payload.custom_slug, payload.expires_in)
+        .await?;
 
     Ok(Json(ShortenResponse { slug }))
 }

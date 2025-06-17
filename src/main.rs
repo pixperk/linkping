@@ -9,6 +9,7 @@ mod db;
 mod models;
 mod services;
 mod errors;
+mod validation;
 
 #[tokio::main]
 async fn main() {
