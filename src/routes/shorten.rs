@@ -1,8 +1,8 @@
 use axum::{
-    extract::{Json, State}, routing::{get, post}, Router
+    extract::{ConnectInfo, Json, State}, routing::{get, post}, Router
 };
 use sqlx:: PgPool;
-use crate::models::link::{ShortenRequest, ShortenResponse};
+use crate::models::{click::ClickEvent, link::{ShortenRequest, ShortenResponse}};
 use crate::services::link::create_short_link;
 use crate::errors::AppError;
 use validator::Validate;
@@ -32,7 +32,9 @@ async fn shorten_handler(
 async fn resolve_handler(
     State(db): State<sqlx::PgPool>,
     axum::extract::Path(slug): axum::extract::Path<String>,
+    metadata : ClickEvent
 ) -> Result<axum::response::Redirect, AppError> {
+    println!("Received click event: {:?}", metadata);
     let target_url = crate::services::link::resolve_slug(&db, slug)
         .await
         .map_err(|e| AppError::NotFound(e.to_string()))?;

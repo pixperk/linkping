@@ -12,5 +12,17 @@ services:
     ports:
       - "5432:5432"
 
+  nats:
+    image: nats:2.10-alpine
+    container_name: linkping_nats
+    restart: always
+    command: [
+      "-js",  # Enables JetStream
+      "-m", "8222" # Monitoring port
+    ]
+    ports:
+      - "4222:4222"  # Main NATS port
+      - "8222:8222"  # Monitoring endpoint
+
 volumes:
   pg_data:

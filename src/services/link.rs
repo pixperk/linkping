@@ -60,7 +60,7 @@ pub async fn resolve_slug(
     //TODO : Add cache layer to speed up lookups
     // Add rate limiting to prevent abuse
     let link = sqlx::query!(
-        "SELECT target_url FROM links WHERE slug = $1",
+        "SELECT target_url FROM links WHERE slug = $1 AND (expires_at IS NULL OR expires_at > NOW())",
         slug
     )
     .fetch_one(db)
