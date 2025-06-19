@@ -1,20 +1,14 @@
 use axum::{
     extract::{ Json, State}, routing::{get, post}, Router
 };
-use sqlx:: PgPool;
-use crate::{models::{click::ClickEvent, link::{ShortenRequest, ShortenResponse}}, streams::producer::publish_click_event};
+use crate::{models::{click::ClickEvent, link::{ShortenRequest, ShortenResponse}}, routes::analytics, streams::producer::publish_click_event};
 use crate::services::link::create_short_link;
 use crate::errors::AppError;
 use validator::Validate;
 
-pub fn shorten_routes(db: PgPool) -> Router {
-    Router::new()
-        .route("/shorten", post(shorten_handler))
-        .route("/{capture}", get(resolve_handler))
-        .with_state(db)
-}
 
-async fn shorten_handler(
+
+pub async fn shorten_handler(
     State(db) : State<sqlx::PgPool>,
     Json(payload): Json<ShortenRequest>,
 ) -> Result<Json<ShortenResponse>, AppError> { 
@@ -29,7 +23,7 @@ async fn shorten_handler(
     Ok(Json(ShortenResponse { slug }))
 }
 
-async fn resolve_handler(
+pub async fn resolve_handler(
     State(db): State<sqlx::PgPool>,
     axum::extract::Path(slug): axum::extract::Path<String>,
     metadata : ClickEvent

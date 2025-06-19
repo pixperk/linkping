@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use sqlx::{prelude::FromRow, types::chrono};
 use validator::Validate;
 use crate::validation::url::{validate_scheme, validate_expiry};
 
@@ -26,10 +25,3 @@ pub struct ShortenResponse {
     pub slug: String,
 }
 
-#[derive(FromRow)]
-pub struct Link {
-    pub id: i32,
-    pub slug: String,
-    pub target_url: String,
-    pub created_at: chrono::NaiveDateTime,
-}

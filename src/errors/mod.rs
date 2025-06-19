@@ -45,3 +45,9 @@ impl Display for AppError {
         }
     }
 } 
+
+impl From<sqlx::Error> for AppError {
+    fn from(err: sqlx::Error) -> Self {
+        AppError::DatabaseError(err.to_string())
+    }
+}
