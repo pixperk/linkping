@@ -1,8 +1,8 @@
 use axum::{
-    extract::{ConnectInfo, Json, State}, routing::{get, post}, Router
+    extract::{ Json, State}, routing::{get, post}, Router
 };
 use sqlx:: PgPool;
-use crate::models::{click::ClickEvent, link::{ShortenRequest, ShortenResponse}};
+use crate::{models::{click::ClickEvent, link::{ShortenRequest, ShortenResponse}}, streams::producer::publish_click_event};
 use crate::services::link::create_short_link;
 use crate::errors::AppError;
 use validator::Validate;
@@ -34,10 +34,14 @@ async fn resolve_handler(
     axum::extract::Path(slug): axum::extract::Path<String>,
     metadata : ClickEvent
 ) -> Result<axum::response::Redirect, AppError> {
-    println!("Received click event: {:?}", metadata);
     let target_url = crate::services::link::resolve_slug(&db, slug)
         .await
         .map_err(|e| AppError::NotFound(e.to_string()))?;
+
+   
+       publish_click_event(metadata).await
+        .map_err(|e| AppError::InternalServerError(e.to_string()))?;
+          
 
     Ok(axum::response::Redirect::to(&target_url))
 }

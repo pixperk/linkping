@@ -8,7 +8,7 @@ SQLX=sqlx
 
 # --- Docker Commands ---
 db-up:
-	docker-compose up -d postgres
+	docker-compose up -d
 
 db-down:
 	docker-compose down

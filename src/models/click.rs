@@ -1,4 +1,5 @@
 use axum::{extract::FromRequestParts, http::StatusCode};
+use chrono::Utc;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -7,7 +8,7 @@ pub struct ClickEvent{
     pub ip : String,
     pub user_agent: String,
     pub referer : Option<String>,
-    pub timestamp : String,
+    pub timestamp : chrono::DateTime<Utc>,
 }
 
 impl<S> FromRequestParts<S> for ClickEvent
@@ -39,7 +40,7 @@ where
                 .trim_start_matches('/')
                 .to_string();
 
-            let timestamp = chrono::Utc::now().to_rfc3339();
+            let timestamp = chrono::Utc::now();
 
             Ok(ClickEvent {
                 slug,
