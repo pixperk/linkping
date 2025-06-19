@@ -34,9 +34,15 @@ async fn resolve_handler(
     axum::extract::Path(slug): axum::extract::Path<String>,
     metadata : ClickEvent
 ) -> Result<axum::response::Redirect, AppError> {
-    let target_url = crate::services::link::resolve_slug(&db, slug)
-        .await
-        .map_err(|e| AppError::NotFound(e.to_string()))?;
+    let target_url = match crate::services::link::resolve_slug(&db, slug).await {
+        Ok(url) => url,
+        Err(AppError::NotFound(_)) => {
+            return Err(AppError::NotFound("Shortlink not found".to_string()));
+        }
+        Err(e) => {
+            return Err(e);
+        }
+    };
 
    
        publish_click_event(metadata).await

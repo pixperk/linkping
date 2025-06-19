@@ -21,7 +21,7 @@ pub async fn insert_click_with_retry(db: &PgPool, click: &ClickEvent) -> Result<
                 last_error = Some(e);
 
                 if attempts < MAX_RETRIES {
-                    // Exponential backoff base (e.g., 2^attempts * base)
+                    // Exponential backoff base
                     let backoff_base = 2u64.pow(attempts);
                     let jitter: u64 = rng().random_range(0..100);
                     let delay_ms = RETRY_DELAY_MS * backoff_base + jitter;
