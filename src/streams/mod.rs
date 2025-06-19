@@ -1,5 +1,6 @@
 pub mod producer;
 pub mod consumer;
+pub mod retry;
 
 pub async fn get_redis_conn() -> redis::RedisResult<redis::aio::MultiplexedConnection> {
     let client = redis::Client::open("redis://127.0.0.1/")?;

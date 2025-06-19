@@ -1,17 +1,15 @@
-
 use std::time::Duration;
 
 use redis::aio::MultiplexedConnection;
 use sqlx::PgPool;
 use tokio::time::sleep;
-use crate::{models::click::ClickEvent, streams::producer::STREAM_KEY};
+use crate::{models::click::ClickEvent, streams::{producer::STREAM_KEY, retry::{insert_click_with_retry, RETRY_DELAY_MS}}};
 
 const CONSUMER_GROUP: &str = "click_consumers";
 const CONSUMER_NAME: &str = "linkping_consumer";
 const BLOCK_TIME_MS: u64 = 5000;
 const BATCH_SIZE: u64 = 10;
-const RETRY_DELAY_MS: u64 = 500;
-const MAX_RETRIES: u32 = 3;
+
 
 pub async fn consume_click_events(db: &PgPool, mut conn: MultiplexedConnection) -> redis::RedisResult<()> {
     // Initialize consumer group
@@ -149,34 +147,7 @@ async fn acknowledge_message(conn: &mut MultiplexedConnection, stream_key: &str,
     }
 }
 
-async fn insert_click_with_retry(db: &PgPool, click: &ClickEvent) -> Result<(), sqlx::Error> {
-    //TODO : Implement exponential backoff with jitter
-    let mut attempts = 0;
-    let mut last_error = None;
-
-    while attempts < MAX_RETRIES {
-        match insert_click(db, click).await {
-            Ok(_) => return Ok(()),
-            Err(e) => {
-                attempts += 1;
-                last_error = Some(e);
-                
-                if attempts < MAX_RETRIES {
-                    tracing::warn!(
-                        "Database insert failed (attempt {}/{}), retrying...",
-                        attempts,
-                        MAX_RETRIES
-                    );
-                    sleep(Duration::from_millis(RETRY_DELAY_MS * attempts as u64)).await;
-                }
-            }
-        }
-    }
-
-    Err(last_error.unwrap())
-}
-
-async fn insert_click(db: &PgPool, click: &ClickEvent) -> Result<(), sqlx::Error> {
+pub async fn insert_click(db: &PgPool, click: &ClickEvent) -> Result<(), sqlx::Error> {
     sqlx::query!(
         "INSERT INTO clicks (slug, ip, user_agent, referer, timestamp) VALUES ($1, $2, $3, $4, $5)",
         click.slug,

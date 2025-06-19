@@ -20,6 +20,7 @@ chrono = { version = "0.4", features = ["serde"] }
 redis = {version = "0.32.1", features = ["tokio-comp"] }
 anyhow = "1.0.98"
 futures = "0.3.28"
+rand = "0.9.1"
 
 [dev-dependencies]
 cargo-watch = "8.5"
